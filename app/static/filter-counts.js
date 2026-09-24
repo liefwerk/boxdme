@@ -92,6 +92,31 @@
     }
   }
 
+  function applyMoodExplorerCss(root) {
+    const payload = root.querySelector(".mood-explorer-css-data");
+    if (!payload) {
+      return;
+    }
+    let css;
+    try {
+      css = JSON.parse(payload.textContent);
+    } catch {
+      payload.remove();
+      return;
+    }
+    payload.remove();
+    if (!css) {
+      return;
+    }
+    let el = document.getElementById("mood-explorer-styles");
+    if (!el) {
+      el = document.createElement("style");
+      el.id = "mood-explorer-styles";
+      document.head.appendChild(el);
+    }
+    el.textContent = css;
+  }
+
   function updateAllFilterCounts() {
     const explorer = getExplorer();
     if (!explorer) {
@@ -117,15 +142,28 @@
     }
   });
 
+  function onResultsUpdated(root) {
+    applyMoodExplorerCss(root);
+    updateAllFilterCounts();
+  }
+
   document.body.addEventListener("htmx:afterSwap", (event) => {
     if (event.detail.target && event.detail.target.id === "results") {
-      updateAllFilterCounts();
+      onResultsUpdated(event.detail.target);
     }
   });
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", updateAllFilterCounts);
+    document.addEventListener("DOMContentLoaded", () => {
+      const results = document.getElementById("results");
+      if (results) {
+        onResultsUpdated(results);
+      }
+    });
   } else {
-    updateAllFilterCounts();
+    const results = document.getElementById("results");
+    if (results) {
+      onResultsUpdated(results);
+    }
   }
 })();

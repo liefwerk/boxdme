@@ -1,6 +1,27 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
+
+# If any of these appear in keywords, do not classify as Cozy Comfort.
+COZY_HEAVY_SUBJECT_KEYWORDS: tuple[str, ...] = (
+    "abortion",
+    "miscarriage",
+    "pregnancy",
+    "stillbirth",
+    "terminal illness",
+    "cancer",
+    "holocaust",
+    "genocide",
+    "rape",
+    "sexual abuse",
+    "suicide",
+    "murder",
+    "grief",
+    "funeral",
+    "war crime",
+    "torture",
+)
 
 
 MOOD_ORDER = [
@@ -84,6 +105,8 @@ class MoodRule:
     genres_any: frozenset[str] = frozenset()
     keywords_any: tuple[str, ...] = ()
     genres_all: frozenset[str] = frozenset()
+    keywords_block: tuple[str, ...] = ()
+    match: Literal["any", "all"] = "any"
 
 
 RULES = [
@@ -120,9 +143,15 @@ RULES = [
         keywords_any=("love story", "relationship", "breakup", "courtship"),
     ),
     MoodRule(
+        name="Arthouse",
+        genres_any=frozenset({"Drama", "Documentary"}),
+        keywords_any=("art house", "slow cinema", "experimental", "meditative", "festival"),
+    ),
+    MoodRule(
         name="Cozy Comfort",
         genres_any=frozenset({"Family", "Animation"}),
-        keywords_any=("christmas", "holiday", "feel good", "friendship", "coming of age"),
+        keywords_any=("christmas", "holiday", "feel good"),
+        keywords_block=COZY_HEAVY_SUBJECT_KEYWORDS,
     ),
     MoodRule(
         name="Laughs",
@@ -133,11 +162,6 @@ RULES = [
         name="Feel Good",
         genres_any=frozenset({"Music", "TV Movie"}),
         keywords_any=("sports", "dance", "musician", "inspirational", "uplifting"),
-    ),
-    MoodRule(
-        name="Arthouse",
-        genres_any=frozenset({"Drama", "Documentary"}),
-        keywords_any=("art house", "slow cinema", "experimental", "meditative", "festival"),
     ),
 ]
 
@@ -178,7 +202,12 @@ SUB_MOOD_RULES: dict[str, tuple[MoodRule, ...]] = {
     ),
     "Cozy Comfort": (
         MoodRule(name="Holiday", keywords_any=("christmas", "holiday", "thanksgiving")),
-        MoodRule(name="Coming of age", keywords_any=("coming of age", "childhood", "teenager")),
+        MoodRule(
+            name="Coming of age",
+            genres_any=frozenset({"Family", "Animation"}),
+            keywords_any=("coming of age", "childhood", "teenager"),
+            match="all",
+        ),
         MoodRule(name="Animation", genres_any=frozenset({"Animation"})),
         MoodRule(name="Family", genres_any=frozenset({"Family"})),
     ),
@@ -203,11 +232,24 @@ SUB_MOOD_RULES: dict[str, tuple[MoodRule, ...]] = {
 
 
 def _match_rule(rule: MoodRule, genre_set: set[str], keyword_blob: str) -> bool:
+    if rule.keywords_block and any(term in keyword_blob for term in rule.keywords_block):
+        return False
     if rule.genres_all and not rule.genres_all.issubset(genre_set):
         return False
-    if rule.genres_any and genre_set.intersection(rule.genres_any):
-        return True
-    if rule.keywords_any and any(term in keyword_blob for term in rule.keywords_any):
+
+    genre_hit = bool(rule.genres_any and genre_set.intersection(rule.genres_any))
+    keyword_hit = bool(rule.keywords_any and any(term in keyword_blob for term in rule.keywords_any))
+
+    if rule.match == "all":
+        if rule.genres_any and rule.keywords_any:
+            return genre_hit and keyword_hit
+        if rule.genres_any:
+            return genre_hit
+        if rule.keywords_any:
+            return keyword_hit
+        return False
+
+    if genre_hit or keyword_hit:
         return True
     return False
 

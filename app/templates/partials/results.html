@@ -48,39 +48,7 @@
 </div>
 
 {% if result.grouped_films %}
-  <style>
-    {% for mood, sub_groups in result.grouped_films.items() %}
-      {% set parent_slug = mood | mood_slug %}
-      .mood-explorer:has(#mood-tab-{{ parent_slug }}:checked) .mood-detail-panel[data-mood="{{ parent_slug }}"] {
-        display: block;
-      }
-      .mood-explorer:has(#mood-tab-{{ parent_slug }}:checked) .mood-card[for="mood-tab-{{ parent_slug }}"] {
-        border-color: rgba(130, 150, 180, 0.45);
-      }
-      {% for sub_mood, films in sub_groups.items() %}
-        {% set sub_slug = sub_mood | mood_slug %}
-        .mood-detail-panel[data-mood="{{ parent_slug }}"]:has(#sub-{{ parent_slug }}-{{ sub_slug }}:checked) .sub-mood-panel[data-sub-mood="{{ sub_slug }}"] {
-          display: block;
-        }
-        .mood-detail-panel[data-mood="{{ parent_slug }}"]:has(#sub-{{ parent_slug }}-{{ sub_slug }}:checked) label[for="sub-{{ parent_slug }}-{{ sub_slug }}"] {
-          border-color: rgba(74, 111, 165, 0.55);
-          background: rgba(58, 90, 130, 0.22);
-        }
-      {% endfor %}
-      .mood-detail-panel[data-mood="{{ parent_slug }}"]:has(#sub-{{ parent_slug }}-all:checked) .sub-mood-panel {
-        display: block;
-      }
-      .mood-detail-panel[data-mood="{{ parent_slug }}"]:has(#sub-{{ parent_slug }}-all:checked) label[for="sub-{{ parent_slug }}-all"] {
-        border-color: rgba(74, 111, 165, 0.55);
-        background: rgba(58, 90, 130, 0.22);
-      }
-    {% endfor %}
-    {% for n in range(0, 9) %}
-      .mood-explorer:has(#filter-hs-{{ n }}:checked) .film-row:not(.hs-ge-{{ n }}) {
-        display: none;
-      }
-    {% endfor %}
-  </style>
+  <script type="application/json" class="mood-explorer-css-data">{{ mood_explorer_css | tojson }}</script>
 
   <div class="mood-explorer">
     {% for mood, sub_groups in result.grouped_films.items() %}
@@ -143,7 +111,6 @@
         {% for mood, sub_groups in result.grouped_films.items() %}
           {% set parent_slug = mood | mood_slug %}
           {% set meta = mood_meta(mood) %}
-          {% set default_sub = result.default_sub_moods[mood] %}
           {% set ns = namespace(count=0) %}
           {% for films in sub_groups.values() %}{% set ns.count = ns.count + (films | length) %}{% endfor %}
           <section class="mood-detail-panel {{ meta.accent }}" data-mood="{{ parent_slug }}" data-mood-total="{{ ns.count }}">
@@ -163,6 +130,7 @@
                 type="radio"
                 name="sub-mood-{{ parent_slug }}"
                 id="sub-{{ parent_slug }}-all"
+                checked
               />
               <label class="rating-filter-chip" for="sub-{{ parent_slug }}-all">
                 All (<span class="vibe-count">{{ ns.count }}</span>)
@@ -174,7 +142,6 @@
                   type="radio"
                   name="sub-mood-{{ parent_slug }}"
                   id="sub-{{ parent_slug }}-{{ sub_slug }}"
-                  {% if sub_mood == default_sub %}checked{% endif %}
                 />
                 <label class="rating-filter-chip" for="sub-{{ parent_slug }}-{{ sub_slug }}">
                   {{ sub_mood }} (<span class="vibe-count">{{ films | length }}</span>)

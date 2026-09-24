@@ -40,6 +40,7 @@ from app.letterboxd import InvalidUsernameError, LetterboxdError, WatchlistEmpty
 from app.letterboxd_film import fetch_missing_average_ratings
 from app.models import EnrichedFilm, FilmStub, SyncResult
 from app.mood import MOOD_ORDER, classify_film, default_sub_mood, mood_meta, mood_slug
+from app.mood_explorer_css import build_mood_explorer_css
 from app.tmdb import TmdbError, enrich_film
 from app.watchlist_hash import compute_watchlist_hash, compute_watchlist_hash_from_slugs
 
@@ -173,22 +174,28 @@ async def sync_watchlist(
         {
             "request": request,
             "result": result,
+            "mood_explorer_css": build_mood_explorer_css(result.grouped_films),
         },
     )
+
+
+def _mood_film_count(sub_groups: dict[str, list[EnrichedFilm]]) -> int:
+    return sum(len(films) for films in sub_groups.values())
 
 
 def _order_grouped(
     grouped: dict[str, dict[str, list[EnrichedFilm]]],
 ) -> dict[str, dict[str, list[EnrichedFilm]]]:
+    mood_rank = {mood: index for index, mood in enumerate(MOOD_ORDER)}
+    fallback_rank = len(MOOD_ORDER)
+
+    def mood_sort_key(mood: str) -> tuple[int, int, str]:
+        count = _mood_film_count(grouped[mood])
+        return (-count, mood_rank.get(mood, fallback_rank), mood.casefold())
+
     ordered: dict[str, dict[str, list[EnrichedFilm]]] = {}
-    for mood in MOOD_ORDER:
-        sub_groups = grouped.get(mood)
-        if not sub_groups:
-            continue
-        ordered[mood] = dict(sorted(sub_groups.items(), key=lambda item: item[0].casefold()))
-    for mood, sub_groups in grouped.items():
-        if mood in ordered:
-            continue
+    for mood in sorted(grouped, key=mood_sort_key):
+        sub_groups = grouped[mood]
         ordered[mood] = dict(sorted(sub_groups.items(), key=lambda item: item[0].casefold()))
     return ordered
 
@@ -229,7 +236,7 @@ def _build_sync_result(
         username=username,
         film_count=len(films),
         last_synced_at=last_synced_at,
-        mood_order=MOOD_ORDER,
+        mood_order=list(grouped.keys()),
         grouped_films=grouped,
         default_sub_moods=_default_sub_moods(grouped),
         unmatched_titles=unmatched,
