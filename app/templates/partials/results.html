@@ -1,0 +1,222 @@
+<div class="summary">
+  <h2>{{ result.username }} watchlist</h2>
+  <p>
+    {{ result.film_count }} films synced.
+    {{ result.rated_film_count }} have a Letterboxd community rating.
+    Last updated {{ result.last_synced_at }}.
+  </p>
+  {% if result.rated_film_count == 0 %}
+    <p class="notice notice-muted">
+      Community ratings could not be loaded yet. Try Refresh watchlist to fetch them from Letterboxd film pages.
+    </p>
+  {% endif %}
+  {% if result.refreshed_moods %}
+    <p class="notice notice-muted">Moods re-classified from saved TMDB metadata — no Letterboxd or TMDB fetch.</p>
+  {% elif result.used_cached_watchlist %}
+    <p class="notice notice-muted">Loaded from SQLite — Letterboxd was skipped because this watchlist hash is already saved.</p>
+  {% elif result.skipped_tmdb %}
+    <p class="notice notice-muted">Watchlist unchanged — skipped TMDB and reused saved metadata. Community ratings were refreshed where missing.</p>
+  {% endif %}
+  {% if result.skipped_tv_titles %}
+    <p class="notice">
+      {{ result.skipped_tv_titles | length }} TV show(s) were skipped and are not included in the mood groups.
+    </p>
+  {% endif %}
+  {% if result.unmatched_titles %}
+    <p class="notice">
+      {{ result.unmatched_titles | length }} film(s) could not be matched on TMDB and were left as Uncategorized.
+    </p>
+  {% endif %}
+</div>
+
+{% if result.grouped_films %}
+  <style>
+    {% for mood, sub_groups in result.grouped_films.items() %}
+      {% set parent_slug = mood | mood_slug %}
+      .mood-explorer:has(#mood-tab-{{ parent_slug }}:checked) .mood-detail-panel[data-mood="{{ parent_slug }}"] {
+        display: block;
+      }
+      .mood-explorer:has(#mood-tab-{{ parent_slug }}:checked) .mood-card[for="mood-tab-{{ parent_slug }}"] {
+        border-color: rgba(130, 150, 180, 0.45);
+      }
+      {% for sub_mood, films in sub_groups.items() %}
+        {% set sub_slug = sub_mood | mood_slug %}
+        .mood-detail-panel[data-mood="{{ parent_slug }}"]:has(#sub-{{ parent_slug }}-{{ sub_slug }}:checked) .sub-mood-panel[data-sub-mood="{{ sub_slug }}"] {
+          display: block;
+        }
+        .mood-detail-panel[data-mood="{{ parent_slug }}"]:has(#sub-{{ parent_slug }}-{{ sub_slug }}:checked) label[for="sub-{{ parent_slug }}-{{ sub_slug }}"] {
+          border-color: rgba(74, 111, 165, 0.55);
+          background: rgba(58, 90, 130, 0.22);
+        }
+      {% endfor %}
+      .mood-detail-panel[data-mood="{{ parent_slug }}"]:has(#sub-{{ parent_slug }}-all:checked) .sub-mood-panel {
+        display: block;
+      }
+      .mood-detail-panel[data-mood="{{ parent_slug }}"]:has(#sub-{{ parent_slug }}-all:checked) label[for="sub-{{ parent_slug }}-all"] {
+        border-color: rgba(74, 111, 165, 0.55);
+        background: rgba(58, 90, 130, 0.22);
+      }
+    {% endfor %}
+    {% for n in range(0, 9) %}
+      .mood-explorer:has(#filter-hs-{{ n }}:checked) .film-row:not(.hs-ge-{{ n }}) {
+        display: none;
+      }
+    {% endfor %}
+  </style>
+
+  <div class="mood-explorer">
+    {% for mood, sub_groups in result.grouped_films.items() %}
+      {% set parent_slug = mood | mood_slug %}
+      <input
+        class="mood-tab-input"
+        type="radio"
+        name="mood-tab"
+        id="mood-tab-{{ parent_slug }}"
+        {% if loop.first %}checked{% endif %}
+      />
+    {% endfor %}
+
+    <input class="mood-tab-input" type="radio" name="rating-filter" id="filter-hs-0" checked />
+    {% for n in range(2, 9, 2) %}
+      <input class="mood-tab-input" type="radio" name="rating-filter" id="filter-hs-{{ n }}" />
+    {% endfor %}
+
+    <div class="mood-explorer-layout">
+      <div class="mood-card-grid">
+        {% for mood, sub_groups in result.grouped_films.items() %}
+          {% set parent_slug = mood | mood_slug %}
+          {% set meta = mood_meta(mood) %}
+          {% set ns = namespace(count=0) %}
+          {% for films in sub_groups.values() %}{% set ns.count = ns.count + (films | length) %}{% endfor %}
+          <label class="mood-card {{ meta.accent }}" for="mood-tab-{{ parent_slug }}">
+            <div class="mood-card-top">
+              <div>
+                <p class="mood-card-kicker">Mood</p>
+                <h3 class="mood-card-title">{{ mood }}</h3>
+              </div>
+              <span class="mood-card-count">{{ ns.count }}</span>
+            </div>
+            <p class="mood-card-excerpt">{{ meta.excerpt }}</p>
+            <div class="mood-preview-grid" aria-hidden="true">
+              {% set ns2 = namespace(slot=0) %}
+              {% for films in sub_groups.values() %}
+                {% for film in films %}
+                  {% if ns2.slot < 4 %}
+                    {% if film.poster_url %}
+                      <img class="mood-preview-thumb" src="{{ film.poster_url }}" alt="" loading="lazy" />
+                    {% else %}
+                      <div class="mood-preview-thumb mood-preview-placeholder">
+                        <span>{{ film.title[:1] }}</span>
+                      </div>
+                    {% endif %}
+                    {% set ns2.slot = ns2.slot + 1 %}
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+              {% for slot in range(ns2.slot, 4) %}
+                <div class="mood-preview-thumb mood-preview-empty"></div>
+              {% endfor %}
+            </div>
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="mood-detail">
+        {% for mood, sub_groups in result.grouped_films.items() %}
+          {% set parent_slug = mood | mood_slug %}
+          {% set meta = mood_meta(mood) %}
+          {% set default_sub = result.default_sub_moods[mood] %}
+          {% set ns = namespace(count=0) %}
+          {% for films in sub_groups.values() %}{% set ns.count = ns.count + (films | length) %}{% endfor %}
+          <section class="mood-detail-panel {{ meta.accent }}" data-mood="{{ parent_slug }}" data-mood-total="{{ ns.count }}">
+            <header class="mood-detail-header">
+              <div>
+                <p class="mood-card-kicker">Selected mood</p>
+                <h3>{{ mood }}</h3>
+                <p class="mood-detail-excerpt">{{ meta.excerpt }}</p>
+              </div>
+              <span class="mood-card-count mood-selection-count" aria-live="polite">{{ ns.count }} films</span>
+            </header>
+
+            <div class="sub-mood-filter-bar" role="group" aria-label="Sub-mood">
+              <span class="rating-filter-label">Pick a vibe</span>
+              <input
+                class="mood-tab-input"
+                type="radio"
+                name="sub-mood-{{ parent_slug }}"
+                id="sub-{{ parent_slug }}-all"
+              />
+              <label class="rating-filter-chip" for="sub-{{ parent_slug }}-all">
+                All (<span class="vibe-count">{{ ns.count }}</span>)
+              </label>
+              {% for sub_mood, films in sub_groups | sort_sub_moods %}
+                {% set sub_slug = sub_mood | mood_slug %}
+                <input
+                  class="mood-tab-input"
+                  type="radio"
+                  name="sub-mood-{{ parent_slug }}"
+                  id="sub-{{ parent_slug }}-{{ sub_slug }}"
+                  {% if sub_mood == default_sub %}checked{% endif %}
+                />
+                <label class="rating-filter-chip" for="sub-{{ parent_slug }}-{{ sub_slug }}">
+                  {{ sub_mood }} (<span class="vibe-count">{{ films | length }}</span>)
+                </label>
+              {% endfor %}
+            </div>
+
+            <div class="rating-filter-bar" role="group" aria-label="Minimum star rating">
+              <span class="rating-filter-label">Show at least</span>
+              <label class="rating-filter-chip" for="filter-hs-0">Any</label>
+              {% for stars in [1, 2, 3, 4] %}
+                {% set hs = stars * 2 %}
+                <label class="rating-filter-chip" for="filter-hs-{{ hs }}">{{ stars }}★+</label>
+              {% endfor %}
+            </div>
+            <p class="rating-filter-hint">
+              Star filters use Letterboxd’s community average (e.g. 4★+ means ≥ 4.0). Unrated films appear under Any only.
+            </p>
+
+            {% for sub_mood, films in sub_groups.items() %}
+              {% set sub_slug = sub_mood | mood_slug %}
+              <div class="sub-mood-panel" data-sub-mood="{{ sub_slug }}">
+                <div class="mood-detail-list">
+                  {% for film in films %}
+                    {% set hs = film.rating_half_steps %}
+                    <article
+                      class="film-row{% if film.poster_url %} has-backdrop{% endif %} hs-ge-0{% for n in range(1, 9) %}{% if hs >= n %} hs-ge-{{ n }}{% endif %}{% endfor %}"
+                      {% if film.poster_url %}style="--film-poster: url('{{ film.poster_url }}')"{% endif %}
+                    >
+                      {% if film.poster_url %}
+                        <span class="film-row-backdrop" aria-hidden="true"></span>
+                      {% endif %}
+                      <div class="film-row-inner">
+                        <p class="film-title">{{ film.title }}</p>
+                        <div class="film-row-copy">
+                          <p class="film-meta-line">
+                            {% if film.year %}{{ film.year }}{% else %}Unknown year{% endif %}
+                            ·
+                            <span class="film-stars" title="Letterboxd community average">{{ film.letterboxd_avg_rating | format_stars }}</span>
+                          </p>
+                          {% if film.genres %}
+                            <div class="chips chips-compact">
+                              {% for genre in film.genres[:3] %}
+                                <span class="chip">{{ genre }}</span>
+                              {% endfor %}
+                            </div>
+                          {% endif %}
+                          <p class="film-link-line">
+                            <a href="{{ film.letterboxd_url }}" target="_blank" rel="noreferrer">Letterboxd</a>
+                          </p>
+                        </div>
+                      </div>
+                    </article>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </section>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}

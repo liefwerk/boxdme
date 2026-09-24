@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>boxdMe</title>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}" />
+    <script src="{{ url_for('static', path='sync-ui.js') }}" defer></script>
+    <script src="{{ url_for('static', path='filter-counts.js') }}" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <p class="eyebrow">Letterboxd watchlist by mood</p>
+        <h1>Sort a public watchlist into themes.</h1>
+        <p class="lede">
+          Enter a Letterboxd username and this page will fetch the public watchlist,
+          save it locally, and group the films by mood using TMDB genres and keywords.
+        </p>
+      </section>
+
+      <section class="panel">
+        <form
+          class="search-form"
+          hx-post="/watchlist/sync"
+          hx-target="#results"
+          hx-swap="innerHTML"
+          hx-indicator="#spinner"
+        >
+          <div class="search-field-row">
+            <label for="username">Letterboxd username</label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              value="{{ default_username }}"
+              placeholder="dave"
+              required
+              autocomplete="username"
+              maxlength="15"
+            />
+          </div>
+          <div class="search-actions">
+            <button type="submit" class="btn btn-primary">Load moods</button>
+            <button type="submit" class="btn" name="refresh_moods" value="1">Refresh moods</button>
+            <button type="submit" class="btn" name="refresh_letterboxd" value="1">Refresh watchlist</button>
+          </div>
+          <p class="form-hint">
+            Load moods uses your saved list when nothing changed. Refresh moods re-groups from SQLite. Refresh watchlist re-fetches Letterboxd.
+          </p>
+          <p id="spinner" class="spinner" aria-live="polite">
+            <span class="spinner-line">Fetching your Letterboxd watchlist…</span>
+            <span class="spinner-line" hidden>Matching films on TMDB…</span>
+            <span class="spinner-line" hidden>Loading Letterboxd community ratings…</span>
+            <span class="spinner-line" hidden>Grouping films by mood…</span>
+          </p>
+        </form>
+      </section>
+
+      <template id="results-loading-template">
+        {% include "partials/loading_results.html" %}
+      </template>
+
+      <section id="results" class="results-shell">
+        <div class="empty-state">
+          <p>No watchlist loaded yet.</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
