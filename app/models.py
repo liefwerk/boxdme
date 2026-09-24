@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Literal
 
 
 @dataclass(slots=True)
@@ -50,3 +51,6 @@ class SyncResult:
     skipped_tmdb: bool = False
     refreshed_moods: bool = False
     rated_film_count: int = 0
+    storage_mode: Literal["local", "session"] = "session"
+    retention_hours: int = 24
+    cache_note: str = ""

@@ -5,17 +5,35 @@
     {{ result.rated_film_count }} have a Letterboxd community rating.
     Last updated {{ result.last_synced_at }}.
   </p>
+  <p class="notice notice-muted storage-notice">
+    {% if result.storage_mode == "local" %}
+      <strong>Local cache.</strong>
+    {% else %}
+      <strong>Session only.</strong>
+    {% endif %}
+    {{ result.cache_note }}
+  </p>
   {% if result.rated_film_count == 0 %}
     <p class="notice notice-muted">
       Community ratings could not be loaded yet. Try Refresh watchlist to fetch them from Letterboxd film pages.
     </p>
   {% endif %}
   {% if result.refreshed_moods %}
-    <p class="notice notice-muted">Moods re-classified from saved TMDB metadata — no Letterboxd or TMDB fetch.</p>
+    <p class="notice notice-muted">
+      Moods re-classified from saved metadata — no Letterboxd or TMDB fetch.
+    </p>
   {% elif result.used_cached_watchlist %}
-    <p class="notice notice-muted">Loaded from SQLite — Letterboxd was skipped because this watchlist hash is already saved.</p>
+    <p class="notice notice-muted">
+      {% if result.storage_mode == "local" %}
+        Loaded from local cache — Letterboxd was skipped because this watchlist hash is already saved.
+      {% else %}
+        Loaded from session cache — Letterboxd was skipped because this watchlist hash is already in memory.
+      {% endif %}
+    </p>
   {% elif result.skipped_tmdb %}
-    <p class="notice notice-muted">Watchlist unchanged — skipped TMDB and reused saved metadata. Community ratings were refreshed where missing.</p>
+    <p class="notice notice-muted">
+      Watchlist unchanged — skipped TMDB and reused saved metadata. Community ratings were refreshed where missing.
+    </p>
   {% endif %}
   {% if result.skipped_tv_titles %}
     <p class="notice">

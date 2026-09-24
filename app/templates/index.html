@@ -15,8 +15,8 @@
         <p class="eyebrow">Letterboxd watchlist by mood</p>
         <h1>Sort a public watchlist into themes.</h1>
         <p class="lede">
-          Enter a Letterboxd username and this page will fetch the public watchlist,
-          save it locally, and group the films by mood using TMDB genres and keywords.
+          Enter a Letterboxd username to fetch a public watchlist and group films by mood
+          using TMDB genres and keywords.
         </p>
       </section>
 
@@ -35,9 +35,10 @@
               name="username"
               type="text"
               value="{{ default_username }}"
-              placeholder="dave"
+              placeholder="enter your username"
               required
               autocomplete="username"
+              minlength="2"
               maxlength="15"
             />
           </div>
@@ -46,8 +47,9 @@
             <button type="submit" class="btn" name="refresh_moods" value="1">Refresh moods</button>
             <button type="submit" class="btn" name="refresh_letterboxd" value="1">Refresh watchlist</button>
           </div>
+          <p class="form-hint">{{ storage_hint }}</p>
           <p class="form-hint">
-            Load moods uses your saved list when nothing changed. Refresh moods re-groups from SQLite. Refresh watchlist re-fetches Letterboxd.
+            Load moods reuses cache when nothing changed. Refresh moods re-groups saved metadata. Refresh watchlist re-fetches Letterboxd.
           </p>
           <p id="spinner" class="spinner" aria-live="polite">
             <span class="spinner-line">Fetching your Letterboxd watchlist…</span>
