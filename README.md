@@ -28,6 +28,12 @@ uvicorn app.main:app --reload
 
 Open <http://127.0.0.1:8000>.
 
+## One-liner after a git pull
+
+```bash
+cd /home/liefwerk/apps/boxdme && git pull && source .venv/bin/activate && pip install -e . && sudo systemctl restart boxdme && systemctl is-active boxdme
+```
+
 ## Storage and privacy
 
 | Variable | Default | Meaning |
