@@ -11,16 +11,14 @@
   </head>
   <body>
     <main class="page">
-      <section class="hero">
+      <section class="intro-panel">
         <p class="eyebrow">Letterboxd watchlist by mood</p>
-        <h1>Sort a public watchlist into themes.</h1>
+        <h1>Your watchlist, sorted by vibe.</h1>
         <p class="lede">
-          Enter a Letterboxd username to fetch a public watchlist and group films by mood
-          using TMDB genres and keywords.
+          Drop in a public Letterboxd username and we'll pull the watchlist, figure out each film's mood,
+          and lay it out so you can browse by feel—not just genre.
         </p>
-      </section>
 
-      <section class="panel">
         <form
           class="search-form"
           hx-post="/watchlist/sync"
@@ -47,17 +45,43 @@
             <button type="submit" class="btn" name="refresh_moods" value="1">Refresh moods</button>
             <button type="submit" class="btn" name="refresh_letterboxd" value="1">Refresh watchlist</button>
           </div>
-          <p class="form-hint">{{ storage_hint }}</p>
-          <p class="form-hint">
-            Load moods reuses cache when nothing changed. Refresh moods re-groups saved metadata. Refresh watchlist re-fetches Letterboxd.
-          </p>
           <p id="spinner" class="spinner" aria-live="polite">
-            <span class="spinner-line">Fetching your Letterboxd watchlist…</span>
-            <span class="spinner-line" hidden>Matching films on TMDB…</span>
-            <span class="spinner-line" hidden>Loading Letterboxd community ratings…</span>
-            <span class="spinner-line" hidden>Grouping films by mood…</span>
+            <span class="spinner-line">Grabbing your Letterboxd watchlist…</span>
+            <span class="spinner-line" hidden>Looking up your films…</span>
+            <span class="spinner-line" hidden>Pulling Letterboxd ratings…</span>
+            <span class="spinner-line" hidden>Sorting into moods…</span>
           </p>
         </form>
+
+        <p class="intro-panel-meta">
+          <label for="intro-info-dialog" class="info-dialog-trigger">How this works &amp; privacy</label>
+        </p>
+
+        <input
+          type="checkbox"
+          id="intro-info-dialog"
+          class="info-dialog-toggle"
+          aria-hidden="true"
+          tabindex="-1"
+        />
+
+        <div class="info-dialog" role="dialog" aria-labelledby="info-dialog-title">
+          <label for="intro-info-dialog" class="info-dialog-scrim" aria-label="Close dialog"></label>
+          <div class="info-dialog-panel">
+            <header class="info-dialog-header">
+              <h2 id="info-dialog-title">How this works</h2>
+              <label for="intro-info-dialog" class="btn info-dialog-close">Close</label>
+            </header>
+            <div class="info-dialog-body">
+              <p class="form-hint">{{ storage_hint }}</p>
+              <p class="form-hint">
+                <strong>Load moods</strong> uses what we already have when nothing changed.
+                <strong>Refresh moods</strong> re-sorts films into moods without hitting Letterboxd again.
+                <strong>Refresh watchlist</strong> fetches a fresh list from Letterboxd.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <template id="results-loading-template">
@@ -66,9 +90,11 @@
 
       <section id="results" class="results-shell">
         <div class="empty-state">
-          <p>No watchlist loaded yet.</p>
+          <p>No watchlist loaded yet—enter a username above to get started.</p>
         </div>
       </section>
+
+      <footer class="page-footer" aria-hidden="true">{{ current_year }}</footer>
     </main>
   </body>
 </html>

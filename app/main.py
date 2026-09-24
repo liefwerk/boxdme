@@ -65,6 +65,24 @@ def _format_stars(rating: float | None) -> str:
 templates.env.filters["format_stars"] = _format_stars
 
 
+def _format_sync_time(iso: str) -> str:
+    if not iso or not iso.strip():
+        return "unknown time"
+    try:
+        dt = datetime.fromisoformat(iso.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return iso.strip()
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(UTC)
+    hour_12 = dt.hour % 12 or 12
+    am_pm = "am" if dt.hour < 12 else "pm"
+    time_part = f"{hour_12}:{dt.minute:02d} {am_pm}"
+    return f"{dt.strftime('%b')} {dt.day}, {dt.year} at {time_part} UTC"
+
+
+templates.env.filters["format_sync_time"] = _format_sync_time
+
+
 def _sort_sub_mood_groups(sub_groups: dict[str, list]) -> list[tuple[str, list]]:
     return sorted(
         ((name, films) for name, films in sub_groups.items() if films),
@@ -108,16 +126,10 @@ async def on_startup() -> None:
 
 
 def _index_storage_hint() -> str:
-    owner = get_persist_username()
-    hours = get_retention_hours()
-    if owner:
-        return (
-            f"Only @{owner} is saved on this server's disk (removed after {hours} hours "
-            f"without use). Other usernames are processed in memory only."
-        )
     return (
-        f"Watchlists are not saved to disk — session memory only, cleared after "
-        f"{hours} hours without use."
+        "We don't save your watchlist on the server—what you load stays in this session "
+        "while you browse. After you sync, the results page says whether that run was kept "
+        "on the server or not."
     )
 
 
@@ -129,9 +141,9 @@ async def index(request: Request) -> HTMLResponse:
         {
             "request": request,
             "default_username": "",
-            "persist_username": get_persist_username(),
             "retention_hours": get_retention_hours(),
             "storage_hint": _index_storage_hint(),
+            "current_year": datetime.now(UTC).year,
         },
     )
 

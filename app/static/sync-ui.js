@@ -1,9 +1,9 @@
 (function () {
   const SPINNER_LINES = [
-    "Fetching your Letterboxd watchlist…",
-    "Matching films on TMDB…",
-    "Loading Letterboxd community ratings…",
-    "Grouping films by mood…",
+    "Grabbing your Letterboxd watchlist…",
+    "Looking up your films…",
+    "Pulling Letterboxd ratings…",
+    "Sorting into moods…",
   ];
   const ROTATE_MS = 2500;
 

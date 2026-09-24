@@ -19,8 +19,11 @@ def build_mood_explorer_css(
         )
         lines.append(
             f".mood-explorer:has(#mood-tab-{parent_slug}:checked) "
-            f'.mood-card[for="mood-tab-{parent_slug}"] {{\n'
-            f"  border-color: rgba(130, 150, 180, 0.45);\n}}"
+            f'label.mood-card[for="mood-tab-{parent_slug}"] {{\n'
+            f"  border-color: color-mix(in srgb, var(--mood-a) 70%, white 12%);\n"
+            f"  background: color-mix(in srgb, var(--mood-a) 48%, rgba(22, 27, 34, 0.92));\n"
+            f"  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mood-a) 35%, transparent);\n"
+            f"}}"
         )
         for sub_mood in sub_groups:
             sub_slug = mood_slug(sub_mood)

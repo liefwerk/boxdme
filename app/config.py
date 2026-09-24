@@ -28,12 +28,13 @@ def is_persisted_user(username: str) -> bool:
 
 def local_cache_note(retention_hours: int) -> str:
     return (
-        f"Saved on this server's disk. Removed if unused for {retention_hours} hours."
+        f"We keep this watchlist on the server so the next load is quicker. "
+        f"If you don't come back for {retention_hours} hours, we'll drop it."
     )
 
 
 def session_cache_note(retention_hours: int) -> str:
     return (
-        f"Not saved to disk — processed in memory only, cleared after "
-        f"{retention_hours} hours without use."
+        f"We don't save your watchlist on the server—it's only here while you're browsing. "
+        f"After {retention_hours} hours without a visit, it's gone."
     )

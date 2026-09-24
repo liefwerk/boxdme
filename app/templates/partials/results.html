@@ -1,48 +1,38 @@
 <div class="summary">
-  <h2>{{ result.username }} watchlist</h2>
+  <h2>{{ result.username }}'s watchlist</h2>
   <p>
-    {{ result.film_count }} films synced.
-    {{ result.rated_film_count }} have a Letterboxd community rating.
-    Last updated {{ result.last_synced_at }}.
+    {{ result.film_count }} films · {{ result.rated_film_count }} with Letterboxd ratings ·
+    updated {{ result.last_synced_at | format_sync_time }}.
   </p>
   <p class="notice notice-muted storage-notice">
-    {% if result.storage_mode == "local" %}
-      <strong>Local cache.</strong>
-    {% else %}
-      <strong>Session only.</strong>
-    {% endif %}
     {{ result.cache_note }}
   </p>
   {% if result.rated_film_count == 0 %}
     <p class="notice notice-muted">
-      Community ratings could not be loaded yet. Try Refresh watchlist to fetch them from Letterboxd film pages.
+      We couldn't pull community ratings yet—try Refresh watchlist and we'll grab them from Letterboxd.
     </p>
   {% endif %}
   {% if result.refreshed_moods %}
     <p class="notice notice-muted">
-      Moods re-classified from saved metadata — no Letterboxd or TMDB fetch.
+      Moods re-sorted from what we already had—no new trip to Letterboxd.
     </p>
   {% elif result.used_cached_watchlist %}
     <p class="notice notice-muted">
-      {% if result.storage_mode == "local" %}
-        Loaded from local cache — Letterboxd was skipped because this watchlist hash is already saved.
-      {% else %}
-        Loaded from session cache — Letterboxd was skipped because this watchlist hash is already in memory.
-      {% endif %}
+      Your watchlist hasn't changed since last time, so we skipped Letterboxd and used what we already had.
     </p>
   {% elif result.skipped_tmdb %}
     <p class="notice notice-muted">
-      Watchlist unchanged — skipped TMDB and reused saved metadata. Community ratings were refreshed where missing.
+      Same films as before—we reused the details we had and refreshed any missing Letterboxd ratings.
     </p>
   {% endif %}
   {% if result.skipped_tv_titles %}
     <p class="notice">
-      {{ result.skipped_tv_titles | length }} TV show(s) were skipped and are not included in the mood groups.
+      {{ result.skipped_tv_titles | length }} TV show(s) aren't in the mood groups (films only for now).
     </p>
   {% endif %}
   {% if result.unmatched_titles %}
     <p class="notice">
-      {{ result.unmatched_titles | length }} film(s) could not be matched on TMDB and were left as Uncategorized.
+      {{ result.unmatched_titles | length }} title(s) we couldn't place—they're under Uncategorized.
     </p>
   {% endif %}
 </div>
@@ -74,7 +64,11 @@
           {% set meta = mood_meta(mood) %}
           {% set ns = namespace(count=0) %}
           {% for films in sub_groups.values() %}{% set ns.count = ns.count + (films | length) %}{% endfor %}
-          <label class="mood-card {{ meta.accent }}" for="mood-tab-{{ parent_slug }}">
+          <label
+            class="mood-card {{ meta.accent }}"
+            for="mood-tab-{{ parent_slug }}"
+            aria-label="{{ mood }}, {{ ns.count }} films"
+          >
             <div class="mood-card-top">
               <div>
                 <p class="mood-card-kicker">Mood</p>
@@ -116,7 +110,7 @@
           <section class="mood-detail-panel {{ meta.accent }}" data-mood="{{ parent_slug }}" data-mood-total="{{ ns.count }}">
             <header class="mood-detail-header">
               <div>
-                <p class="mood-card-kicker">Selected mood</p>
+                <p class="mood-card-kicker">Now browsing</p>
                 <h3>{{ mood }}</h3>
                 <p class="mood-detail-excerpt">{{ meta.excerpt }}</p>
               </div>
@@ -158,7 +152,7 @@
               {% endfor %}
             </div>
             <p class="rating-filter-hint">
-              Star filters use Letterboxd’s community average (e.g. 4★+ means ≥ 4.0). Unrated films appear under Any only.
+              Stars are Letterboxd's community average (4★+ means 4.0 or higher). Films without a rating only show when you pick Any.
             </p>
 
             {% for sub_mood, films in sub_groups.items() %}

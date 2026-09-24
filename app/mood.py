@@ -28,7 +28,7 @@ MOOD_ORDER = [
     "Dark Tension",
     "Mindbender",
     "Epic Scope",
-    "Crime Edge",
+    "Underworld",
     "Romance",
     "Cozy Comfort",
     "Laughs",
@@ -50,7 +50,7 @@ MOOD_META: dict[str, dict[str, str]] = {
         "excerpt": "Big skies, long journeys, and stakes that reshape kingdoms or history itself.",
         "accent": "mood-accent-epic",
     },
-    "Crime Edge": {
+    "Underworld": {
         "excerpt": "Heists, grudges, and moral gray zones where everyone has something to hide.",
         "accent": "mood-accent-crime",
     },
@@ -133,7 +133,7 @@ RULES = [
         keywords_any=("epic", "quest", "kingdom", "battle", "empire", "based on true story"),
     ),
     MoodRule(
-        name="Crime Edge",
+        name="Underworld",
         genres_any=frozenset({"Crime"}),
         keywords_any=("heist", "gangster", "detective", "film noir", "mob", "police"),
     ),
@@ -189,7 +189,7 @@ SUB_MOOD_RULES: dict[str, tuple[MoodRule, ...]] = {
         MoodRule(name="Western", genres_any=frozenset({"Western"})),
         MoodRule(name="Quest", keywords_any=("quest", "journey", "expedition", "epic")),
     ),
-    "Crime Edge": (
+    "Underworld": (
         MoodRule(name="Heist", keywords_any=("heist", "robbery", "vault")),
         MoodRule(name="Gangster", keywords_any=("gangster", "mob", "mafia", "organized crime")),
         MoodRule(name="Noir", keywords_any=("film noir", "neo-noir", "detective")),
