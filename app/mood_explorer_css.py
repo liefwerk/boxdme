@@ -29,7 +29,7 @@ def build_mood_explorer_css(
             sub_slug = mood_slug(sub_mood)
             lines.append(
                 f'.mood-detail-panel[data-mood="{parent_slug}"]:has(#sub-{parent_slug}-{sub_slug}:checked) '
-                f'.sub-mood-panel[data-sub-mood="{sub_slug}"] {{\n  display: block;\n}}'
+                f'.sub-mood-panel[data-sub-mood="{sub_slug}"] {{\n  display: contents;\n}}'
             )
             lines.append(
                 f'.mood-detail-panel[data-mood="{parent_slug}"]:has(#sub-{parent_slug}-{sub_slug}:checked) '
@@ -39,7 +39,7 @@ def build_mood_explorer_css(
             )
         lines.append(
             f'.mood-detail-panel[data-mood="{parent_slug}"]:has(#sub-{parent_slug}-all:checked) '
-            f".sub-mood-panel {{\n  display: block;\n}}"
+            f".sub-mood-panel {{\n  display: contents;\n}}"
         )
         lines.append(
             f'.mood-detail-panel[data-mood="{parent_slug}"]:has(#sub-{parent_slug}-all:checked) '

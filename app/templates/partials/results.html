@@ -155,10 +155,10 @@
               Stars are Letterboxd's community average (4★+ means 4.0 or higher). Films without a rating only show when you pick Any.
             </p>
 
-            {% for sub_mood, films in sub_groups.items() %}
-              {% set sub_slug = sub_mood | mood_slug %}
-              <div class="sub-mood-panel" data-sub-mood="{{ sub_slug }}">
-                <div class="mood-detail-list">
+            <div class="mood-detail-list">
+              {% for sub_mood, films in sub_groups.items() %}
+                {% set sub_slug = sub_mood | mood_slug %}
+                <div class="sub-mood-panel" data-sub-mood="{{ sub_slug }}">
                   {% for film in films %}
                     {% set hs = film.rating_half_steps %}
                     <article
@@ -191,8 +191,8 @@
                     </article>
                   {% endfor %}
                 </div>
-              </div>
-            {% endfor %}
+              {% endfor %}
+            </div>
           </section>
         {% endfor %}
       </div>

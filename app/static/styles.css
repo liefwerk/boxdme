@@ -510,6 +510,9 @@ a {
   margin-bottom: var(--space-2);
 }
 
+/* Shown as `display: contents` (see mood_explorer_css.py) so every visible
+   film row shares the single .mood-detail-list flex container and its gap,
+   including across sub-mood boundaries. */
 .sub-mood-panel {
   display: none;
 }
