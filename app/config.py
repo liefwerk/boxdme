@@ -35,6 +35,6 @@ def local_cache_note(retention_hours: int) -> str:
 
 def session_cache_note(retention_hours: int) -> str:
     return (
-        f"We don't save your watchlist on the server—it's only here while you're browsing. "
+        f"We don't save your watchlist on the server. It's only here while you're browsing. "
         f"After {retention_hours} hours without a visit, it's gone."
     )

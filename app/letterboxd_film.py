@@ -9,12 +9,21 @@ import httpx
 from app.letterboxd import LETTERBOXD_BASE_URL, LetterboxdError, _get_with_retries
 
 CDATA_JSON_PATTERN = re.compile(r"CDATA\[(\{.*\})\]", re.DOTALL)
+TMDB_MOVIE_HREF_PATTERN = re.compile(
+    r"https?://(?:www\.)?themoviedb\.org/movie/(\d+)",
+    re.IGNORECASE,
+)
+TMDB_TRACK_LINK_PATTERN = re.compile(
+    r'<a[^>]+data-track-action=["\']TMDB["\'][^>]+href=["\']([^"\']+)["\']',
+    re.IGNORECASE,
+)
+TMDB_TRACK_LINK_PATTERN_ALT = re.compile(
+    r'<a[^>]+href=["\']([^"\']*themoviedb\.org/movie/\d+[^"\']*)["\'][^>]+data-track-action=["\']TMDB["\']',
+    re.IGNORECASE,
+)
 
 
-async def fetch_film_average_rating(
-    slug: str,
-    client: httpx.AsyncClient,
-) -> float | None:
+async def _fetch_film_page_html(slug: str, client: httpx.AsyncClient) -> str | None:
     url = f"{LETTERBOXD_BASE_URL}/film/{slug}/"
     try:
         response = await _get_with_retries(client, url)
@@ -24,7 +33,39 @@ async def fetch_film_average_rating(
     if response.status_code != 200:
         return None
 
-    return _parse_average_rating(response.text)
+    return response.text
+
+
+def parse_tmdb_id_from_film_html(html: str) -> int | None:
+    for pattern in (TMDB_TRACK_LINK_PATTERN, TMDB_TRACK_LINK_PATTERN_ALT):
+        match = pattern.search(html)
+        if match:
+            href_match = TMDB_MOVIE_HREF_PATTERN.search(match.group(1))
+            if href_match:
+                return int(href_match.group(1))
+
+    fallback = TMDB_MOVIE_HREF_PATTERN.search(html)
+    if fallback:
+        return int(fallback.group(1))
+
+    return None
+
+
+async def fetch_letterboxd_tmdb_id(slug: str, client: httpx.AsyncClient) -> int | None:
+    html = await _fetch_film_page_html(slug, client)
+    if html is None:
+        return None
+    return parse_tmdb_id_from_film_html(html)
+
+
+async def fetch_film_average_rating(
+    slug: str,
+    client: httpx.AsyncClient,
+) -> float | None:
+    html = await _fetch_film_page_html(slug, client)
+    if html is None:
+        return None
+    return _parse_average_rating(html)
 
 
 def _parse_average_rating(html: str) -> float | None:

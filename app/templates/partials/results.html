@@ -9,12 +9,12 @@
   </p>
   {% if result.rated_film_count == 0 %}
     <p class="notice notice-muted">
-      We couldn't pull community ratings yet—try Refresh watchlist and we'll grab them from Letterboxd.
+      We couldn't pull community ratings yet. Try <i>Refresh watchlist</i> and we'll grab them from Letterboxd.
     </p>
   {% endif %}
   {% if result.refreshed_moods %}
     <p class="notice notice-muted">
-      Moods re-sorted from what we already had—no new trip to Letterboxd.
+      Moods re-sorted from what we already had. No new trip to Letterboxd.
     </p>
   {% elif result.used_cached_watchlist %}
     <p class="notice notice-muted">
@@ -22,7 +22,7 @@
     </p>
   {% elif result.skipped_tmdb %}
     <p class="notice notice-muted">
-      Same films as before—we reused the details we had and refreshed any missing Letterboxd ratings.
+      Same films as before. We reused the details we had and refreshed any missing Letterboxd ratings.
     </p>
   {% endif %}
   {% if result.skipped_tv_titles %}
@@ -32,7 +32,7 @@
   {% endif %}
   {% if result.unmatched_titles %}
     <p class="notice">
-      {{ result.unmatched_titles | length }} title(s) we couldn't place—they're under Uncategorized.
+      {{ result.unmatched_titles | length }} title(s) we couldn't place, they're under Uncategorized.
     </p>
   {% endif %}
 </div>

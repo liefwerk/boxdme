@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
+from app.mood import FALLBACK_MOOD
+
 
 @dataclass(slots=True)
 class FilmStub:
@@ -21,7 +23,7 @@ class EnrichedFilm:
     letterboxd_url: str
     tmdb_id: int | None = None
     poster_url: str | None = None
-    mood: str = "Uncategorized"
+    mood: str = FALLBACK_MOOD
     sub_mood: str = "General"
     genres: list[str] = field(default_factory=list)
     keywords: list[str] = field(default_factory=list)

@@ -56,7 +56,7 @@ templates.env.globals["mood_meta"] = mood_meta
 
 def _format_stars(rating: float | None) -> str:
     if rating is None:
-        return "—"
+        return "-"
     full = int(rating)
     half = 1 if rating - full >= 0.5 else 0
     return ("★" * full) + ("½" if half else "")
@@ -130,9 +130,8 @@ async def on_startup() -> None:
 
 def _index_storage_hint() -> str:
     return (
-        "We don't save your watchlist on the server—what you load stays in this session "
-        "while you browse. After you sync, the results page says whether that run was kept "
-        "on the server or not."
+        "We don't save your watchlist on the server. What you load from your public watchlist "
+        "stays in this session while you browse."
     )
 
 
@@ -382,6 +381,7 @@ async def _enrich_stubs(
     stubs: list[FilmStub],
     *,
     read_cached_films: bool,
+    force_tmdb_refresh: bool = False,
 ) -> tuple[list[EnrichedFilm], list[str], list[str]]:
     enriched_films: list[EnrichedFilm] = []
     unmatched_titles: list[str] = []
@@ -395,7 +395,12 @@ async def _enrich_stubs(
             continue
 
         cached = cached_films.get(stub.letterboxd_slug)
-        if cached and cached.tmdb_id is not None and cached.mood:
+        if (
+            not force_tmdb_refresh
+            and cached
+            and cached.tmdb_id is not None
+            and cached.mood
+        ):
             cached.title = stub.title
             cached.year = stub.year
             cached.letterboxd_url = stub.letterboxd_url
@@ -508,6 +513,7 @@ async def _sync_watchlist_persisted(
     enriched_films, unmatched_titles, skipped_tv_titles = await _enrich_stubs(
         stubs,
         read_cached_films=True,
+        force_tmdb_refresh=refresh_letterboxd,
     )
     await _ensure_community_ratings_persisted(enriched_films)
 
@@ -585,6 +591,7 @@ async def _sync_watchlist_ephemeral(
     enriched_films, unmatched_titles, skipped_tv_titles = await _enrich_stubs(
         stubs,
         read_cached_films=True,
+        force_tmdb_refresh=refresh_letterboxd,
     )
     await _ensure_community_ratings_session(enriched_films)
 
