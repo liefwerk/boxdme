@@ -426,7 +426,11 @@ def update_letterboxd_avg_ratings(ratings: dict[str, float | None]) -> None:
             )
 
 
-def purge_stale_watchlists(*, retention_hours: int = 24) -> tuple[int, int]:
+def purge_stale_watchlists(
+    *,
+    retention_hours: int = 24,
+    keep_username: str | None = None,
+) -> tuple[int, int]:
     from datetime import timedelta
 
     cutoff = (datetime.now(UTC) - timedelta(hours=retention_hours)).isoformat(timespec="seconds")
@@ -435,8 +439,8 @@ def purge_stale_watchlists(*, retention_hours: int = 24) -> tuple[int, int]:
 
     with get_connection() as connection:
         users_deleted = connection.execute(
-            "DELETE FROM users WHERE last_synced_at < ?",
-            (cutoff,),
+            "DELETE FROM users WHERE last_synced_at < ? AND username IS NOT ?",
+            (cutoff, keep_username),
         ).rowcount
         films_deleted = connection.execute(
             """

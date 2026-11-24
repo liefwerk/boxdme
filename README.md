@@ -39,9 +39,9 @@ cd /home/liefwerk/apps/boxdme && git pull && source .venv/bin/activate && pip in
 | Variable | Default | Meaning |
 |----------|---------|---------|
 | `PERSIST_USERNAME` | (empty) | If set, only this Letterboxd username is written to `boxdme.sqlite3`. |
-| `WATCHLIST_RETENTION_HOURS` | `24` | Inactivity window before purging persisted and in-memory watchlists. |
+| `WATCHLIST_RETENTION_HOURS` | `24` | Inactivity window before purging in-memory guest watchlists (the `PERSIST_USERNAME` data is kept indefinitely). |
 
-- **Owner (`PERSIST_USERNAME`)**: watchlist and links are stored in SQLite. Stale owner rows, orphan film metadata, and the DB file are cleaned up (including `VACUUM`) after the retention window without use.
+- **Owner (`PERSIST_USERNAME`)**: watchlist, films and moods are stored in SQLite **indefinitely**; the retention purge never deletes them. Each sync replaces the owner's watchlist, and film metadata no longer linked to it is removed (followed by `VACUUM`). Rows left by any other username (e.g. a previous `PERSIST_USERNAME`) are still purged after the retention window.
 - **Everyone else**: watchlists live **in server memory only** (not written to `users` / `user_films`). Entries are dropped after the same retention window without a sync. TMDB metadata already on disk from the owner may be **read** to speed up enrichment; guest syncs do not write new rows.
 - If `PERSIST_USERNAME` is empty, **no** watchlist is persisted to disk (all usernames are session-only).
 

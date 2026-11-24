@@ -101,7 +101,10 @@ def _now_iso() -> str:
 
 def _run_retention_purge() -> None:
     hours = get_retention_hours()
-    users_deleted, films_deleted = purge_stale_watchlists(retention_hours=hours)
+    users_deleted, films_deleted = purge_stale_watchlists(
+        retention_hours=hours,
+        keep_username=get_persist_username(),
+    )
     evicted = ephemeral_store.purge_inactive(retention_hours=hours)
     if users_deleted or films_deleted or evicted:
         logger.info(

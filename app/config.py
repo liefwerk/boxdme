@@ -28,8 +28,8 @@ def is_persisted_user(username: str) -> bool:
 
 def local_cache_note(retention_hours: int) -> str:
     return (
-        f"We keep this watchlist on the server so the next load is quicker. "
-        f"If you don't come back for {retention_hours} hours, we'll drop it."
+        "We keep this watchlist on the server so the next load is quicker. "
+        "It stays saved until the next sync replaces it."
     )
 
 
